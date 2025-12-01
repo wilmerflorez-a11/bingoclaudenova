@@ -70,13 +70,14 @@ def sala_espera(request):
 # =============
 @login_required
 def estado_juego(request):
+    from .services import StaticGameScheduleService
+    
     ahora = timezone.localtime()
-
-    # HORA PROGRAMADA DEL JUEGO (CAMBIA AQUÍ)
-    hora_juego = ahora.replace(hour=9, minute=0, second=0, microsecond=0)
-
-    if ahora > hora_juego:
-        hora_juego += timezone.timedelta(days=1)
+    
+    # Use the service to get the game time (OCP)
+    # In the future, we can inject a DatabaseGameScheduleService here
+    schedule_service = StaticGameScheduleService()
+    hora_juego, sala_nombre = schedule_service.get_next_game_time(ahora)
 
     # SESIONES ACTIVAS
     sesiones = Session.objects.filter(expire_date__gte=timezone.now())
@@ -94,5 +95,6 @@ def estado_juego(request):
         "hora_servidor": ahora.strftime("%H:%M:%S"),
         "hora_juego": hora_juego.strftime("%H:%M:%S"),
         "faltan": int((hora_juego - ahora).total_seconds()),
-        "jugadores": jugadores
+        "jugadores": jugadores,
+        "sala_nombre": sala_nombre
     })
