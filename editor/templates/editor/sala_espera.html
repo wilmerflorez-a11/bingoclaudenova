@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+{% load static %}
+<head>
+<meta charset="UTF-8">
+<title>Sala de Espera | Bingo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+
+/* ============================= */
+/* RESET GENERAL */
+/* ============================= */
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin:0;
+    padding:0;
+    height:100%;
+}
+
+/* ============================= */
+/* FONDO PERSONALIZADO */
+/* ============================= */
+
+body {
+    background: url("{% static 'imagenes/fondo2.png' %}") center/cover no-repeat fixed;
+    font-family:'Poppins', sans-serif;
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    overflow:hidden;
+}
+
+/* OSCURECER FONDO */
+body::before {
+    content:"";
+    position:absolute;
+    inset:0;
+    background:rgba(2,6,23,.78);
+    z-index:0;
+}
+
+/* ============================= */
+/* CONTENEDOR PRINCIPAL */
+/* ============================= */
+
+.container {
+    width:95%;
+    max-width:1100px;
+    height:95vh;
+    position:relative;
+    z-index:1;
+    background:rgba(15,23,42,.96);
+    border-radius:24px;
+    box-shadow:0 0 60px rgba(0,0,0,.9);
+    display:grid;
+    grid-template-rows:160px 1fr 150px;
+    animation:entrada .8s ease;
+}
+
+@keyframes entrada {
+    from {opacity:0; transform:scale(.95);}
+    to {opacity:1; transform:scale(1);}
+}
+
+/* ============================= */
+/* HEADER CON LOGO */
+/* ============================= */
+
+.header {
+    background:linear-gradient(135deg,#1e293b,#020617);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    border-bottom:3px solid rgba(255,255,255,.15);
+}
+
+.header img {
+    max-height:360px;
+    filter:drop-shadow(0 0 15px gold);
+    animation:pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%,100% {transform:scale(1);}
+    50% {transform:scale(1.08);}
+}
+
+/* ============================= */
+/* CONTENIDO */
+/* ============================= */
+
+.content {
+    display:grid;
+    grid-template-columns:1.3fr 1fr;
+    gap:25px;
+    padding:28px;
+}
+
+/* ============================= */
+/* PANEL IZQUIERDO */
+/* ============================= */
+
+.left {
+    background:rgba(2,6,23,.94);
+    border-radius:18px;
+    padding:24px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    position:relative;
+}
+
+/* LUZ INTERNA */
+.left::after {
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:18px;
+    box-shadow:inset 0 0 25px rgba(34,197,94,.2);
+    pointer-events:none;
+}
+
+.left h2 {
+    font-size:1.7rem;
+}
+
+.time {
+    font-size:.85rem;
+    opacity:.8;
+}
+
+.texto {
+    font-size:.95rem;
+    opacity:.75;
+    line-height:1.4;
+}
+
+/* ============================= */
+/* CONTADOR */
+/* ============================= */
+
+.counter {
+    font-size:3.2rem;
+    text-align:center;
+    font-weight:bold;
+    color:#22c55e;
+    letter-spacing:3px;
+    filter:drop-shadow(0 0 10px #22c55e);
+    animation:latido 1s infinite;
+}
+
+@keyframes latido {
+    0%,100%{transform:scale(1)}
+    50%{transform:scale(1.05)}
+}
+
+/* ============================= */
+/* BOTÓN */
+/* ============================= */
+
+button {
+    background:linear-gradient(135deg,#22c55e,#84cc16);
+    border:none;
+    border-radius:40px;
+    width:70%;
+    margin:0 auto;
+    padding:14px;
+    font-weight:600;
+    font-size:1rem;
+    cursor:pointer;
+    color:#022c22;
+    transition:.3s;
+}
+
+button:hover:not(:disabled) {
+    transform:scale(1.08);
+    box-shadow:0 0 20px #22c55e;
+}
+
+button:disabled {
+    background:#475569;
+    cursor:not-allowed;
+}
+
+/* ============================= */
+/* PANEL DERECHO */
+/* ============================= */
+
+.right {
+    background:rgba(2,6,23,.94);
+    border-radius:18px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+}
+
+.right h3 {
+    opacity:.7;
+}
+
+.user {
+    font-size:1.6rem;
+    color:#38bdf8;
+}
+
+/* ============================= */
+/* JUGADORES */
+/* ============================= */
+
+.players-section {
+    background:rgba(2,6,23,.97);
+    padding:20px;
+    border-top:3px solid rgba(255,255,255,.1);
+}
+
+.players-section h3 {
+    text-align:center;
+    font-size:1.1rem;
+    color:#4ade80;
+}
+
+.players {
+    list-style:none;
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    padding:0;
+    margin-top:10px;
+}
+
+.players li {
+    background:#020617;
+    padding:6px 15px;
+    border-radius:25px;
+    font-size:.75rem;
+    margin:5px;
+}
+
+/* CONFETTI ANIMADO */
+.confetti {
+    width:8px;
+    height:8px;
+    position:fixed;
+    top:-10px;
+    animation:confetti 4s linear forwards;
+}
+
+@keyframes confetti {
+    to {
+        transform:translateY(110vh) rotate(360deg);
+    }
+}
+
+/* ============================= */
+/* RESPONSIVE */
+/* ============================= */
+
+@media(max-width:768px){
+    .content { grid-template-columns:1fr; }
+    .container { grid-template-rows:140px 1fr 170px; }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- LOGO -->
+<div class="header">
+    <img src="{% static 'imagenes/logo1.png' %}" alt="Logo">
+</div>
+
+<!-- CONTENIDO -->
+<div class="content">
+
+    <div class="left">
+        <div>
+
+            <h2>SALA DE ESPERA</h2>
+            <p class="time">Hora del servidor: <span id="hora">--:--:--</span></p>
+
+            <p class="texto">
+                Esperando jugadores... El sistema iniciará automáticamente cuando llegue la hora.
+            </p>
+
+            <h3>El juego inicia en</h3>
+            <div class="counter" id="contador">--:--:--</div>
+
+        </div>
+
+        <button id="btnIniciar" disabled onclick="window.location.href='/crear_carton/'">
+            ENTRAR A LA SALA
+        </button>
+    </div>
+
+    <div class="right">
+        <h3>Bienvenido</h3>
+        <div class="user">{{ username }}</div>
+    </div>
+
+</div>
+
+<!-- CONECTADOS -->
+<div class="players-section">
+    <h3>Conectados</h3>
+    <ul class="players" id="jugadores"></ul>
+    <footer style="text-align:center;font-size:.7rem;opacity:.6;">Actualizando en tiempo real</footer>
+</div>
+
+</div>
+
+
+<!-- ============================= -->
+<!-- JAVASCRIPT ORIGINAL -->
+<!-- ============================= -->
+<script>
+
+// ===============================
+// CONFIGURACIÓN DE INICIO
+// ===============================
+let horaInicio = "14:41:00";
+
+let horaServidorInicial = null;
+let fechaSincronizacion = null;
+let iniciado = false;
+
+
+// ===============================
+// CONEXIÓN WEBSOCKET
+// ===============================
+const socket = new WebSocket(
+  (location.protocol === "https:" ? "wss://" : "ws://") +
+  window.location.host + "/ws/sala/"
+);
+
+
+socket.onmessage = (event) => {
+    let data = JSON.parse(event.data);
+
+    if (!horaServidorInicial) {
+        horaServidorInicial = data.hora;
+        fechaSincronizacion = new Date();
+        iniciarRelojPerfecto();
+    }
+
+    mostrarUsuarios(data.usuarios);
+};
+
+
+// ===============================
+// RELOJ PERFECTO
+// ===============================
+function iniciarRelojPerfecto(){
+
+    if(iniciado) return;
+    iniciado = true;
+
+    setInterval(() => {
+
+        let ahora = new Date();
+        let segundosPasados = Math.floor((ahora - fechaSincronizacion) / 1000);
+
+        let [h, m, s] = horaServidorInicial.split(":").map(Number);
+
+        let reloj = new Date();
+        reloj.setHours(h);
+        reloj.setMinutes(m);
+        reloj.setSeconds(s + segundosPasados);
+
+        let hh = String(reloj.getHours()).padStart(2, '0');
+        let mm = String(reloj.getMinutes()).padStart(2, '0');
+        let ss = String(reloj.getSeconds()).padStart(2, '0');
+
+        let horaActual = `${hh}:${mm}:${ss}`;
+
+        document.getElementById("hora").innerText = horaActual;
+
+        actualizarContador(horaActual);
+
+    }, 1000);
+}
+
+
+// ===============================
+// MOSTRAR USUARIOS
+// ===============================
+function mostrarUsuarios(usuarios){
+
+    let lista = document.getElementById("jugadores");
+    lista.innerHTML = "";
+
+    if(usuarios.length === 0){
+        let li = document.createElement("li");
+        li.textContent = "Esperando jugadores...";
+        lista.appendChild(li);
+        return;
+    }
+
+    usuarios.forEach(u =>{
+        let li = document.createElement("li");
+        li.textContent = u;
+        lista.appendChild(li);
+    });
+}
+
+
+// ===============================
+// CONTADOR Y CONFETTI
+// ===============================
+function actualizarContador(horaActual){
+
+    let hoy = new Date();
+
+    let [hi, mi, si] = horaInicio.split(":");
+    let inicio = new Date(hoy);
+    inicio.setHours(hi, mi, si, 0);
+
+    let [ha, ma, sa] = horaActual.split(":");
+    let ahora = new Date(hoy);
+    ahora.setHours(ha, ma, sa, 0);
+
+    let diff = inicio - ahora;
+
+    if(diff <= 0){
+        document.getElementById("contador").innerText = "00:00:00";
+        document.getElementById("btnIniciar").disabled = false;
+        document.getElementById("btnIniciar").innerText = "¡INGRESAR!";
+        lanzarConfetti();
+        return;
+    }
+
+    let total = Math.floor(diff / 1000);
+
+    let h = Math.floor(total / 3600);
+    let m = Math.floor((total % 3600) / 60);
+    let s = total % 60;
+
+    document.getElementById("contador").innerText =
+        String(h).padStart(2,'0') + ":" +
+        String(m).padStart(2,'0') + ":" +
+        String(s).padStart(2,'0');
+}
+
+
+// ===============================
+// CONFETTI
+// ===============================
+function lanzarConfetti(){
+    for(let i=0;i<80;i++){
+        let c = document.createElement("div");
+        c.classList.add("confetti");
+        c.style.left = Math.random()*100 + "vw";
+        c.style.background = `hsl(${Math.random()*360}, 100%, 50%)`;
+        c.style.animationDuration = (Math.random()*3+2) + "s";
+        document.body.appendChild(c);
+
+        setTimeout(()=> c.remove(),5000);
+    }
+}
+
+</script>
+
+</body>
+</html>
