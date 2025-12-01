@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.contrib.sessions.models import Session
 from django.contrib.auth.models import User
+from django.contrib import messages
 
 
 # =============
@@ -15,12 +16,61 @@ def registro(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('sala_espera')
+            try:
+                user = form.save()
+                # Iniciar sesión automáticamente después del registro
+                login(request, user)
+                messages.success(request, f'¡Cuenta creada exitosamente para {user.username}!')
+                # Redirigir a la sala de espera (ajusta el nombre de la URL según tu proyecto)
+                return redirect('sala_espera')  # O 'dashboard', 'lobby', etc.
+            except Exception as e:
+                # Capturar cualquier error de integridad
+                messages.error(request, f'Error al crear la cuenta: {str(e)}')
+                return render(request, 'editor/registro.html', {'form': form})
+        else:
+            # Si el formulario no es válido, mostrar errores
+            messages.error(request, 'Por favor corrige los errores en el formulario.')
     else:
         form = UserCreationForm()
-    return render(request, 'editor/register.html', {'form': form})
+    
+    return render(request, 'editor/registro.html', {'form': form})
+
+
+# ALTERNATIVA: Si usas un formulario personalizado
+from django.contrib.auth.models import User
+
+def registro_custom(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password1 = request.POST.get('password1')
+        password2 = request.POST.get('password2')
+        email = request.POST.get('email', '')
+        
+        # Validaciones
+        if password1 != password2:
+            messages.error(request, 'Las contraseñas no coinciden.')
+            return render(request, 'editor/registro.html')
+        
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'El nombre de usuario ya está en uso.')
+            return render(request, 'editor/registro.html')
+        
+        try:
+            # Crear usuario
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password1
+            )
+            # Iniciar sesión
+            login(request, user)
+            messages.success(request, f'¡Bienvenido {username}!')
+            return redirect('sala_espera')  # Ajusta según tu URL
+        except Exception as e:
+            messages.error(request, f'Error al crear cuenta: {str(e)}')
+            return render(request, 'editor/registro.html')
+    
+    return render(request, 'editor/registro.html')
 
 
 # =============
