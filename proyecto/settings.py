@@ -5,18 +5,23 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-desarrollo-key-cambiar-en-produccion')
+SECRET_KEY = os.environ.get('SECRET_KEY', '7cy#$*3g0otwbvj(z5hyf1$=)ko#t5*c!80ay+f@&#q%o)$@31')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-# ALLOWED_HOSTS - Configuración más permisiva para Azure
+# ALLOWED_HOSTS - Configuración para Azure
 ALLOWED_HOSTS_ENV = os.environ.get('ALLOWED_HOSTS', '')
 if ALLOWED_HOSTS_ENV:
     ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_ENV.split(',')]
 else:
-    # Fallback para Azure
-    ALLOWED_HOSTS = ['*']
+    # Fallback para Azure - Reemplaza 'tu-app' con el nombre de tu app
+    ALLOWED_HOSTS = [
+        'localhost',
+        '127.0.0.1',
+        '.azurewebsites.net',  # Acepta cualquier subdominio de azurewebsites.net
+        '*'  # Temporal para debugging, eliminar en producción
+    ]
     
 # Application definition
 INSTALLED_APPS = [
@@ -33,10 +38,11 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',  # Importante para autenticación
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Para servir archivos estáticos en Azure
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',  # Importante para autenticación
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -62,25 +68,14 @@ TEMPLATES = [
 # ASGI application
 ASGI_APPLICATION = 'proyecto.asgi.application'
 
-# Channel layers
+# Channel layers - CORREGIDO: Solo una definición
 CHANNEL_LAYERS = {
     'default': {
-        # Para desarrollo local, usa InMemoryChannelLayer
-        # Para producción en Azure, usa RedisChannelLayer
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
 
-
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
-    }
-}
-
-
 # Database
-# IMPORTANTE: Esta configuración debe estar presente
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -117,6 +112,8 @@ STATICFILES_DIRS = [
     BASE_DIR / "editor" / "static",
 ]
 
+# Configuración de WhiteNoise para archivos estáticos
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -129,7 +126,7 @@ LOGOUT_REDIRECT_URL = 'login'
 # Ajustes de seguridad para Azure
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# CSRF_TRUSTED_ORIGINS más permisivo
+# CSRF_TRUSTED_ORIGINS
 CSRF_ORIGINS_ENV = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
 if CSRF_ORIGINS_ENV:
     CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in CSRF_ORIGINS_ENV.split(',')]
@@ -140,11 +137,16 @@ else:
         'http://*.azurewebsites.net',
     ]
 
-# Deshabilitar algunas restricciones SSL temporalmente para debugging
-if DEBUG:
+# Configuración de seguridad según el entorno
+if not DEBUG:
+    # Producción
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+else:
+    # Desarrollo
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
-
-USE_TZ = True
-TIME_ZONE = "America/Bogota"
