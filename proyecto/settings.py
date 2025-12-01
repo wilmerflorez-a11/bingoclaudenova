@@ -8,10 +8,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-desarrollo-key-cambiar-en-produccion')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['*']
-
+# ALLOWED_HOSTS - Configuración más permisiva para Azure
+ALLOWED_HOSTS_ENV = os.environ.get('ALLOWED_HOSTS', '')
+if ALLOWED_HOSTS_ENV:
+    ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_ENV.split(',')]
+else:
+    # Fallback para Azure
+    ALLOWED_HOSTS = ['*']
+    
 # Application definition
 INSTALLED_APPS = [
     'daphne',  # Debe ir primero para usar ASGI
@@ -122,8 +128,23 @@ LOGOUT_REDIRECT_URL = 'login'
 
 # Ajustes de seguridad para Azure
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-CSRF_TRUSTED_ORIGINS = ['https://*.azurewebsites.net']
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
+# CSRF_TRUSTED_ORIGINS más permisivo
+CSRF_ORIGINS_ENV = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+if CSRF_ORIGINS_ENV:
+    CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in CSRF_ORIGINS_ENV.split(',')]
+else:
+    # Fallback para Azure
+    CSRF_TRUSTED_ORIGINS = [
+        'https://*.azurewebsites.net',
+        'http://*.azurewebsites.net',
+    ]
+
+# Deshabilitar algunas restricciones SSL temporalmente para debugging
+if DEBUG:
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
 
 USE_TZ = True
 TIME_ZONE = "America/Bogota"

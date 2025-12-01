@@ -6,7 +6,33 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.contrib.sessions.models import Session
 from django.contrib.auth.models import User
+from django.contrib import messages
+from django.db import IntegrityError
 
+def registro(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            try:
+                user = form.save()
+                login(request, user)
+                messages.success(request, f'¡Bienvenido {user.username}!')
+                # IMPORTANTE: Cambia 'sala_espera' por el nombre real de tu URL
+                return redirect('sala_espera')  # O 'dashboard', 'lobby', etc.
+            except IntegrityError:
+                messages.error(request, 'Este nombre de usuario ya existe.')
+                return render(request, 'editor/registro.html', {'form': form})
+            except Exception as e:
+                messages.error(request, f'Error al crear la cuenta: {str(e)}')
+                return render(request, 'editor/registro.html', {'form': form})
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+    else:
+        form = UserCreationForm()
+    
+    return render(request, 'editor/registro.html', {'form': form})
 
 # =============
 # REGISTRO
@@ -15,12 +41,26 @@ def registro(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('sala_espera')
+            try:
+                user = form.save()
+                login(request, user)
+                messages.success(request, f'¡Bienvenido {user.username}!')
+                # IMPORTANTE: Cambia 'sala_espera' por el nombre real de tu URL
+                return redirect('sala_espera')  # O 'dashboard', 'lobby', etc.
+            except IntegrityError:
+                messages.error(request, 'Este nombre de usuario ya existe.')
+                return render(request, 'editor/registro.html', {'form': form})
+            except Exception as e:
+                messages.error(request, f'Error al crear la cuenta: {str(e)}')
+                return render(request, 'editor/registro.html', {'form': form})
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
     else:
         form = UserCreationForm()
-    return render(request, 'editor/register.html', {'form': form})
+    
+    return render(request, 'editor/registro.html', {'form': form})
 
 
 # =============
