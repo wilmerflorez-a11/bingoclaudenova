@@ -5,7 +5,7 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', '7cy#$*3g0otwbvj(z5hyf1$=)ko#t5*c!80ay+f@&#q%o)$@31')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-desarrollo-key-cambiar-en-produccion')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
@@ -15,12 +15,12 @@ ALLOWED_HOSTS_ENV = os.environ.get('ALLOWED_HOSTS', '')
 if ALLOWED_HOSTS_ENV:
     ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_ENV.split(',')]
 else:
-    # Fallback para Azure - Reemplaza 'tu-app' con el nombre de tu app
+    # Fallback para Azure - Acepta todos los dominios de Azure
     ALLOWED_HOSTS = [
         'localhost',
         '127.0.0.1',
         '.azurewebsites.net',  # Acepta cualquier subdominio de azurewebsites.net
-        '*'  # Temporal para debugging, eliminar en producción
+        'bingo-multicanal-app-bca3a0h7g8cxcfbu.eastus2-01.azurewebsites.net',
     ]
     
 # Application definition
@@ -135,6 +135,7 @@ else:
     CSRF_TRUSTED_ORIGINS = [
         'https://*.azurewebsites.net',
         'http://*.azurewebsites.net',
+        'https://bingo-multicanal-app-bca3a0h7g8cxcfbu.eastus2-01.azurewebsites.net',
     ]
 
 # Configuración de seguridad según el entorno
