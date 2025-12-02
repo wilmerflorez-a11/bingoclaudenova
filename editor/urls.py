@@ -15,6 +15,12 @@ urlpatterns = [
     # Sala de espera
     path('sala-espera/', views.sala_espera, name='sala_espera'),
     path("estado-juego/", views.estado_juego, name="estado_juego"),
+    path("juego/", views.juego, name="juego"),
+    
+    # Panel de control
+    path("panel/", views.admin_panel, name="admin_panel"),
+    path("panel/sortear-balota/", views.sortear_balota, name="sortear_balota"),
+    path("panel/reiniciar-juego/", views.reiniciar_juego, name="reiniciar_juego"),
 ]
 
 # ✅ SOLO EN DESARROLLO

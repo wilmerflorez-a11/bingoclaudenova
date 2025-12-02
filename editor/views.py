@@ -98,3 +98,132 @@ def estado_juego(request):
         "jugadores": jugadores,
         "sala_nombre": sala_nombre
     })
+
+@login_required
+def juego(request):
+    from .models import Partida, Carton, Sala
+    from .services import BingoCardService
+    import json
+    
+    # Get or create active game
+    # For MVP, we assume one active game in the main room
+    sala = Sala.objects.first() # Assuming at least one room exists
+    if not sala:
+        # Create default room if none
+        sala = Sala.objects.create(nombre="Sala Principal", hora_inicio="09:00")
+        
+    partida = Partida.objects.filter(sala=sala, estado__in=['WAITING', 'PLAYING']).last()
+    
+    if not partida:
+        partida = Partida.objects.create(sala=sala, estado='WAITING')
+        
+    # Get or create user's card for this game
+    carton = Carton.objects.filter(partida=partida, usuario=request.user).first()
+    
+    if not carton:
+        card_service = BingoCardService()
+        matriz = card_service.generate_card()
+        carton = Carton.objects.create(
+            partida=partida,
+            usuario=request.user,
+            matriz=json.dumps(matriz) # Store as JSON string
+        )
+        
+    return render(request, 'editor/juego.html', {
+        'partida_id': partida.id,
+        'carton_matriz': carton.matriz # Already JSON string
+    })
+
+@login_required
+def admin_panel(request):
+    from .models import Partida, Sala
+    
+    # Only allow staff/admin
+    if not request.user.is_staff:
+        return redirect('juego')
+        
+    sala = Sala.objects.first()
+    if not sala:
+        sala = Sala.objects.create(nombre="Sala Principal", hora_inicio="09:00")
+        
+    partida = Partida.objects.filter(sala=sala, estado__in=['WAITING', 'PLAYING']).last()
+    
+    if not partida:
+        partida = Partida.objects.create(sala=sala, estado='WAITING')
+        
+    return render(request, 'editor/admin_panel.html', {
+        'partida_id': partida.id
+    })
+
+@login_required
+def sortear_balota(request):
+    from .models import Partida
+    from .services import GameEngineService
+    from channels.layers import get_channel_layer
+    from asgiref.sync import async_to_sync
+    import json
+    
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+        
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+        
+    data = json.loads(request.body)
+    partida_id = data.get('partida_id')
+    
+    partida = Partida.objects.get(id=partida_id)
+    drawn = partida.get_balotas()
+    
+    engine = GameEngineService()
+    new_ball = engine.draw_ball(drawn)
+    
+    if new_ball == -1:
+        return JsonResponse({'error': 'Todas las balotas han sido sorteadas'})
+        
+    drawn.append(new_ball)
+    partida.set_balotas(drawn)
+    partida.estado = 'PLAYING'
+    partida.save()
+    
+    # Send to all connected clients via WebSocket
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        'principal',
+        {
+            'type': 'new_ball',
+            'number': new_ball
+        }
+    )
+    
+    return JsonResponse({'number': new_ball})
+
+@login_required
+def reiniciar_juego(request):
+    from .models import Partida
+    from channels.layers import get_channel_layer
+    from asgiref.sync import async_to_sync
+    import json
+    
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+        
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+        
+    data = json.loads(request.body)
+    partida_id = data.get('partida_id')
+    
+    partida = Partida.objects.get(id=partida_id)
+    partida.set_balotas([])
+    partida.estado = 'WAITING'
+    partida.ganador = None
+    partida.save()
+    
+    return JsonResponse({'success': True})
+
+def _get_proxima_hora_juego(ahora):
+    # This function definition was incomplete and syntactically incorrect in the provided snippet.
+    # It seems it was intended to be a helper function, but its body was missing or malformed.
+    # For now, I'm providing a placeholder. Please complete its implementation.
+    return ahora # Placeholder, replace with actual logic
