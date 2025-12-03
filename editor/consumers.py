@@ -136,6 +136,11 @@ class SalaConsumer(AsyncWebsocketConsumer):
             'type': 'game_over',
             'winner': event['winner']
         }))
+
+    async def game_reset(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'game_reset'
+        }))
     
     # Helper methods for async database access
     @database_sync_to_async

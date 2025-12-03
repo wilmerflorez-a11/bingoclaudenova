@@ -1,5 +1,7 @@
+
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.http import JsonResponse
@@ -198,27 +200,40 @@ def sortear_balota(request):
     
     return JsonResponse({'number': new_ball})
 
+@csrf_exempt
 @login_required
 def reiniciar_juego(request):
-    from .models import Partida
+    from .models import Partida, Sala
     from channels.layers import get_channel_layer
     from asgiref.sync import async_to_sync
     import json
     
     if not request.user.is_staff:
         return JsonResponse({'error': 'No autorizado'}, status=403)
-        
+    
     if request.method != 'POST':
         return JsonResponse({'error': 'Método no permitido'}, status=405)
         
-    data = json.loads(request.body)
-    partida_id = data.get('partida_id')
+    # Get the latest active game
+    partida = Partida.objects.filter(estado__in=['WAITING', 'PLAYING', 'FINISHED']).last()
     
-    partida = Partida.objects.get(id=partida_id)
-    partida.set_balotas([])
-    partida.estado = 'WAITING'
+    if not partida:
+        return JsonResponse({'error': 'No hay partida activa'}, status=404)
+    
+    # Reset the game
+    partida.balotas_sorteadas = "[]"  # Empty JSON array, not empty string
     partida.ganador = None
+    partida.estado = 'WAITING'
     partida.save()
+    
+    # Broadcast reset event to all connected players
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        "principal",  # Must match the group name in consumers.py
+        {
+            "type": "game_reset",
+        }
+    )
     
     return JsonResponse({'success': True})
 

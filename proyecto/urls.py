@@ -5,8 +5,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('editor.urls')),
+    path('admin/', admin.site.urls),  # Django admin first
+    path('', include('editor.urls')),  # Editor routes (including /admin/panel/) second
 ]
 
 if settings.DEBUG:

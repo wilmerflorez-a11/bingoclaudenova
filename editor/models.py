@@ -25,7 +25,12 @@ class Partida(models.Model):
         self.balotas_sorteadas = json.dumps(lista)
 
     def get_balotas(self):
-        return json.loads(self.balotas_sorteadas)
+        if not self.balotas_sorteadas or self.balotas_sorteadas.strip() == "":
+            return []
+        try:
+            return json.loads(self.balotas_sorteadas)
+        except (json.JSONDecodeError, ValueError):
+            return []
 
     def __str__(self):
         return f"Partida {self.id} - {self.estado}"
