@@ -228,12 +228,14 @@ def reiniciar_juego(request):
     
     # Broadcast reset event to all connected players
     channel_layer = get_channel_layer()
+    print(f"[DEBUG] Sending game_reset to group 'principal'")
     async_to_sync(channel_layer.group_send)(
         "principal",  # Must match the group name in consumers.py
         {
             "type": "game_reset",
         }
     )
+    print(f"[DEBUG] game_reset event sent successfully")
     
     return JsonResponse({'success': True})
 

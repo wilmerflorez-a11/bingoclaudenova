@@ -138,6 +138,7 @@ class SalaConsumer(AsyncWebsocketConsumer):
         }))
 
     async def game_reset(self, event):
+        print(f"[DEBUG] Consumer {self.username} receiving game_reset event")
         await self.send(text_data=json.dumps({
             'type': 'game_reset'
         }))

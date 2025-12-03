@@ -31,7 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 handleGameOver(data.winner);
                 break;
             case 'game_reset':
+                console.log('[DEBUG] game_reset event received!');
                 alert("El administrador ha reiniciado el juego. Recargando...");
+                console.log('[DEBUG] About to reload page...');
                 window.location.reload();
                 break;
         }
