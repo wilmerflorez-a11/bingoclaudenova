@@ -8,30 +8,30 @@ echo "=========================================="
 chmod +x startup.sh
 
 # Colectar archivos estáticos SIN --clear para evitar borrar archivos
-echo "🎨 Recolectando archivos estáticos..."
+echo " Recolectando archivos estáticos..."
 python manage.py collectstatic --noinput
 
 # Ejecutar migraciones
-echo "🗄️  Ejecutando migraciones..."
+echo "  Ejecutando migraciones..."
 python manage.py migrate --noinput
 
 # Crear superusuario si no existe
-echo "👤 Verificando superusuario..."
+echo " Verificando superusuario..."
 python manage.py shell << 'EOF'
 from django.contrib.auth import get_user_model
 User = get_user_model()
 try:
     if not User.objects.filter(username='admin').exists():
-        User.objects.create_superuser('admin', 'admin@bingo.com', 'Admin2025!Bingo')
-        print('✅ Superusuario creado')
+        User.objects.create_superuser('admin', 'admin@bingo.com', 'bingo21')
+        print(' Superusuario creado')
     else:
-        print('✅ Superusuario ya existe')
+        print(' Superusuario ya existe')
 except Exception as e:
-    print(f'⚠️  Error con superusuario: {e}')
+    print(f' Error con superusuario: {e}')
 EOF
 
 echo "=========================================="
-echo "🚀 Iniciando Daphne..."
+echo " Iniciando Daphne..."
 echo "=========================================="
 
 # Iniciar Daphne
